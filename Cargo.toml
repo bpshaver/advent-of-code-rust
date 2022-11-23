@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+        "aoc_utils",
+        "aoc21_01",
+        "aoc22_01"
+]
