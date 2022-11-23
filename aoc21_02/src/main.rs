@@ -14,7 +14,7 @@ enum Direction {
 enum DirectionParseError {
     SplitError,
     ParseVariantError,
-    ParseDistanceError,
+    ParseUnitsError,
 }
 
 impl FromStr for Direction {
@@ -24,15 +24,15 @@ impl FromStr for Direction {
         let split = s.split_once(' ');
         match split {
             Some(tpl) => {
-                let distance = tpl.1.parse::<usize>();
-                match distance {
-                    Ok(distance) => match tpl.0 {
-                        "forward" => Ok(Direction::Forward(distance)),
-                        "up" => Ok(Direction::Up(distance)),
-                        "down" => Ok(Direction::Down(distance)),
+                let units = tpl.1.parse::<usize>();
+                match units {
+                    Ok(units) => match tpl.0 {
+                        "forward" => Ok(Direction::Forward(units)),
+                        "up" => Ok(Direction::Up(units)),
+                        "down" => Ok(Direction::Down(units)),
                         _ => Err(Self::Err::ParseVariantError),
                     },
-                    Err(_) => Err(Self::Err::ParseDistanceError),
+                    Err(_) => Err(Self::Err::ParseUnitsError),
                 }
             }
             None => Err(Self::Err::SplitError),
@@ -47,9 +47,9 @@ fn part_one(input: &str) -> usize {
 
     for direction in directions {
         match direction {
-            Direction::Forward(distance) => hposition += distance,
-            Direction::Down(distance) => depth += distance,
-            Direction::Up(distance) => depth -= distance,
+            Direction::Forward(units) => hposition += units,
+            Direction::Down(units) => depth += units,
+            Direction::Up(units) => depth -= units,
         }
     }
     hposition * depth
@@ -63,12 +63,12 @@ fn part_two(input: &str) -> usize {
 
     for direction in directions {
         match direction {
-            Direction::Forward(distance) => {
-                hposition += distance;
-                depth += aim * distance;
+            Direction::Forward(units) => {
+                hposition += units;
+                depth += aim * units;
             }
-            Direction::Down(distance) => aim += distance,
-            Direction::Up(distance) => aim -= distance,
+            Direction::Down(units) => aim += units,
+            Direction::Up(units) => aim -= units,
         }
     }
     hposition * depth
