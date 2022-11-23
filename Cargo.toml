@@ -3,5 +3,6 @@
 members = [
         "aoc_utils",
         "aoc21_01",
-        "aoc22_01"
+        "aoc21_02",
+        "aoc22_01",
 ]

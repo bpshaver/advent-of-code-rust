@@ -18,6 +18,7 @@ fn part_two(input: &str) -> usize {
         .filter(|window| window[1] > window[0])
         .count()
 }
+
 fn main() {
     println!("Head of INPUT:\n{:?}", input::head(INPUT));
     let part_one_solution = part_one(INPUT);
