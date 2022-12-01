@@ -1,11 +1,38 @@
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 
+//! Utilities for solving Advent of Code problems in rust.
+
+/// Utilities for dealing with input strings.
 pub mod input {
     use std::str::FromStr;
+
+    /// Return the first 5 lines of the input string as a vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils::input;
+    ///
+    /// let input = "if\non\na\nwinters\nnight\na\ntraveler";
+    ///
+    /// assert_eq!(input::head(input), vec!["if","on","a","winters","night"]);
+    /// ```
     pub fn head(s: &str) -> Vec<&str> {
         s.lines().take(5).collect()
     }
 
+    /// Return a vector of items of type T from an input string split
+    /// on newlines.
+    ///
+    /// T must implement the std::FromStr trait.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let nums: Vec<i32> = get_lines_of_type("1\n2\n3");
+    ///
+    /// assert_eq!(nums, vec![1,2,3]);
+    /// ```
     pub fn get_lines_of_type<T>(input: &str) -> Vec<T>
     where
         T: FromStr,
