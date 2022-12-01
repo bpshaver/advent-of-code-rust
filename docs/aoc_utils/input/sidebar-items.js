@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_lines_of_type","Return a vector of items of type T from an input string split on newlines."],["head","Return the first 5 lines of the input string as a vector."]]};

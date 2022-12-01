@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["input","Utilities for dealing with input strings."]]};
