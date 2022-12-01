@@ -144,9 +144,9 @@ fn part_two(input: &str) -> u32 {
 fn main() {
     println!("Head of INPUT:\n{:?}", input::head(INPUT));
     let part_one_solution = part_one(INPUT);
-    println!("Solution to part_one: {}", part_one_solution);
+    println!("Solution to part one: {}", part_one_solution);
     let part_two_solution = part_two(INPUT);
-    println!("Solution to part_one: {}", part_two_solution);
+    println!("Solution to part two: {}", part_two_solution);
 }
 
 #[cfg(test)]
