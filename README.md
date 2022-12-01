@@ -13,6 +13,17 @@ $ cargo run -p <crate>
 ```
 
 or `cd` into that crate and `cargo run` there.
+## `aoc_utils`
+
+This repo contains a crate called `aoc_utils`. Documentation is available [here](https://bpshaver.github.io/advent-of-code-rust/aoc_utils/).
+
+You can use it within your own Rust project by adding this to your `Cargo.toml`:
+
+```
+aoc_utils = { git = "https://github.com/bpshaver/advent-of-code-rust", branch = "main" }
+```
+
+PRs are welcome.
 
 ## Template
 
