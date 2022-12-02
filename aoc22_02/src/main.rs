@@ -1,4 +1,5 @@
 use aoc_utils::input;
+use std::fmt;
 use std::str::FromStr;
 
 const INPUT: &str = include_str!("../input.txt");
@@ -68,32 +69,28 @@ enum EnumParseError {
     EmptyString,
 }
 
-fn parse_game_line_one(input: &str) -> Result<(Hand, Hand), EnumParseError> {
+fn parse_game_line<T>(input: &str) -> Result<(Hand, T), EnumParseError>
+where
+    T: FromStr<Err = EnumParseError>,
+    <T as FromStr>::Err: fmt::Debug,
+{
     let tpl = match input.split_once(' ') {
         None => return Err(EnumParseError::EmptyString),
         Some(tpl) => tpl,
     };
     let h1 = Hand::from_str(tpl.0)?;
-    let h2 = Hand::from_str(tpl.1)?;
-    Ok((h1, h2))
+    match T::from_str(tpl.1) {
+        Err(e) => return Err(e),
+        Ok(variant) => return Ok((h1, variant)),
+    }
 }
 
-fn parse_game_line_two(input: &str) -> Result<(Hand, Outcome), EnumParseError> {
-    let tpl = match input.split_once(' ') {
-        None => return Err(EnumParseError::EmptyString),
-        Some(tpl) => tpl,
-    };
-    let h1 = Hand::from_str(tpl.0)?;
-    let h2 = Outcome::from_str(tpl.1)?;
-    Ok((h1, h2))
-}
-
-fn parse_input_one(input: &str) -> Result<Vec<(Hand, Hand)>, EnumParseError> {
-    input.lines().map(parse_game_line_one).collect()
-}
-
-fn parse_input_two(input: &str) -> Result<Vec<(Hand, Outcome)>, EnumParseError> {
-    input.lines().map(parse_game_line_two).collect()
+fn parse_input<T>(input: &str) -> Result<Vec<(Hand, T)>, EnumParseError>
+where
+    T: FromStr<Err = EnumParseError>,
+    <T as FromStr>::Err: fmt::Debug,
+{
+    input.lines().map(parse_game_line).collect()
 }
 
 fn score_game(game: &(Hand, Hand)) -> (u8, u8) {
@@ -149,7 +146,7 @@ fn rig_game(game: &(Hand, Outcome)) -> (u8, u8) {
 }
 
 fn part_one(input: &str) -> u32 {
-    parse_input_one(input)
+    parse_input(input)
         .expect("Should be at least one line of input")
         .iter()
         .map(|game| score_game(game).1 as u32)
@@ -157,7 +154,7 @@ fn part_one(input: &str) -> u32 {
 }
 
 fn part_two(input: &str) -> u32 {
-    parse_input_two(input)
+    parse_input(input)
         .expect("Should be at least one line of input")
         .iter()
         .map(|game| rig_game(game).1 as u32)
@@ -175,6 +172,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use crate::Hand::*;
+    use crate::Outcome::*;
     use crate::*;
 
     const SAMPLE: &str = "A Y\nB X\nC Z";
@@ -190,10 +188,14 @@ mod tests {
     }
 
     #[test]
-    fn parse_input_one_sample() {
+    fn parse_input_sample() {
         assert_eq!(
-            parse_input_one(SAMPLE).unwrap(),
+            parse_input::<Hand>(SAMPLE).unwrap(),
             vec![(Rock, Paper), (Paper, Rock), (Scissors, Scissors)]
+        );
+        assert_eq!(
+            parse_input::<Outcome>(SAMPLE).unwrap(),
+            vec![(Rock, Draw), (Paper, Lose), (Scissors, Win)]
         )
     }
     #[test]
