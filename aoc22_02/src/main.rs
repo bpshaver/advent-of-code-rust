@@ -10,13 +10,13 @@ enum Hand {
     Scissors,
 }
 
-#[derive(Debug)]
-#[non_exhaustive]
-enum HandParseError {
-    InvalidCharacter,
-    TooManyCharacters,
-    EmptyString,
+#[derive(Debug, PartialEq, Eq)]
+enum Outcome {
+    Lose,
+    Draw,
+    Win,
 }
+
 impl Hand {
     fn value(&self) -> u8 {
         match self {
@@ -28,7 +28,7 @@ impl Hand {
 }
 
 impl FromStr for Hand {
-    type Err = HandParseError;
+    type Err = EnumParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.chars().take(2).count() > 1 {
             return Err(Self::Err::TooManyCharacters);
@@ -43,9 +43,34 @@ impl FromStr for Hand {
     }
 }
 
-fn parse_game_line(input: &str) -> Result<(Hand, Hand), HandParseError> {
+impl FromStr for Outcome {
+    type Err = EnumParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.chars().take(2).count() > 1 {
+            return Err(Self::Err::TooManyCharacters);
+        }
+        match s.chars().next() {
+            None => return Err(Self::Err::EmptyString),
+            Some('X') => return Ok(Self::Lose),
+            Some('Y') => return Ok(Self::Draw),
+            Some('Z') => return Ok(Self::Win),
+            Some(_) => return Err(Self::Err::InvalidCharacter),
+        }
+    }
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+enum EnumParseError {
+    InvalidCharacter,
+    TooManyCharacters,
+    EmptyString,
+}
+
+fn parse_game_line_one(input: &str) -> Result<(Hand, Hand), EnumParseError> {
     let tpl = match input.split_once(' ') {
-        None => return Err(HandParseError::EmptyString),
+        None => return Err(EnumParseError::EmptyString),
         Some(tpl) => tpl,
     };
     let h1 = Hand::from_str(tpl.0)?;
@@ -53,8 +78,22 @@ fn parse_game_line(input: &str) -> Result<(Hand, Hand), HandParseError> {
     Ok((h1, h2))
 }
 
-fn parse_input(input: &str) -> Result<Vec<(Hand, Hand)>, HandParseError> {
-    input.lines().map(parse_game_line).collect()
+fn parse_game_line_two(input: &str) -> Result<(Hand, Outcome), EnumParseError> {
+    let tpl = match input.split_once(' ') {
+        None => return Err(EnumParseError::EmptyString),
+        Some(tpl) => tpl,
+    };
+    let h1 = Hand::from_str(tpl.0)?;
+    let h2 = Outcome::from_str(tpl.1)?;
+    Ok((h1, h2))
+}
+
+fn parse_input_one(input: &str) -> Result<Vec<(Hand, Hand)>, EnumParseError> {
+    input.lines().map(parse_game_line_one).collect()
+}
+
+fn parse_input_two(input: &str) -> Result<Vec<(Hand, Outcome)>, EnumParseError> {
+    input.lines().map(parse_game_line_two).collect()
 }
 
 fn score_game(game: &(Hand, Hand)) -> (u8, u8) {
@@ -77,17 +116,13 @@ fn score_game(game: &(Hand, Hand)) -> (u8, u8) {
     (p1_score, p2_score)
 }
 
-fn rig_game(game: &(Hand, Hand)) -> (u8, u8) {
-    // Oops, we misunderstood what the second letter in the input was.
-    // Ah well, let's use the same enum for part two, but here the
-    // second element in the tuple means (lose, draw, win) not (rock,
-    // paper, scissors).
+fn rig_game(game: &(Hand, Outcome)) -> (u8, u8) {
     use crate::Hand::*;
+    use crate::Outcome::*;
     let mut p1_score = game.0.value();
     let mut p2_score = 0;
-    match game.1 {
-        Rock => {
-            // We want to lose
+    match &game.1 {
+        Lose => {
             p1_score += 6;
             match game.0 {
                 Rock => p2_score += Scissors.value(),
@@ -95,15 +130,13 @@ fn rig_game(game: &(Hand, Hand)) -> (u8, u8) {
                 Scissors => p2_score += Paper.value(),
             }
         }
-        Paper => {
-            // We want to draw
+        Draw => {
             p1_score += 3;
             p2_score += 3;
             // We play what they play
             p2_score += game.0.value();
         }
-        Scissors => {
-            // We want to win
+        Win => {
             p2_score += 6;
             match game.0 {
                 Rock => p2_score += Paper.value(),
@@ -116,7 +149,7 @@ fn rig_game(game: &(Hand, Hand)) -> (u8, u8) {
 }
 
 fn part_one(input: &str) -> u32 {
-    parse_input(input)
+    parse_input_one(input)
         .expect("Should be at least one line of input")
         .iter()
         .map(|game| score_game(game).1 as u32)
@@ -124,7 +157,7 @@ fn part_one(input: &str) -> u32 {
 }
 
 fn part_two(input: &str) -> u32 {
-    parse_input(input)
+    parse_input_two(input)
         .expect("Should be at least one line of input")
         .iter()
         .map(|game| rig_game(game).1 as u32)
@@ -157,9 +190,9 @@ mod tests {
     }
 
     #[test]
-    fn parse_input_sample() {
+    fn parse_input_one_sample() {
         assert_eq!(
-            parse_input(SAMPLE).unwrap(),
+            parse_input_one(SAMPLE).unwrap(),
             vec![(Rock, Paper), (Paper, Rock), (Scissors, Scissors)]
         )
     }
