@@ -4,7 +4,6 @@ use std::collections::{HashMap, HashSet};
 const INPUT: &str = include_str!("../input.txt");
 
 fn get_priority_of_line(line: &str) -> u32 {
-    #![allow(unused, dead_code)]
     let n = line.chars().count() / 2;
     let (first, second): (Vec<_>, Vec<_>) = line.chars().enumerate().partition(|(i, _)| i < &n);
     let first: HashSet<&char> = first.iter().map(|(_, c)| c).collect();
