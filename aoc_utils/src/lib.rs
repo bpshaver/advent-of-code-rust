@@ -29,7 +29,9 @@ pub mod input {
     /// # Examples
     ///
     /// ```
-    /// let nums: Vec<i32> = get_lines_of_type("1\n2\n3");
+    /// use aoc_utils::input;
+    ///
+    /// let nums: Vec<i32> = input::get_lines_of_type("1\n2\n3");
     ///
     /// assert_eq!(nums, vec![1,2,3]);
     /// ```
