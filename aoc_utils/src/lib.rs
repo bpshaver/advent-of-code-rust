@@ -13,9 +13,9 @@ pub mod input {
     /// ```
     /// use aoc_utils::input;
     ///
-    /// let input = "if\non\na\nwinters\nnight\na\ntraveler";
+    /// let input = "if\non\na\nwinter's\nnight\na\ntraveler";
     ///
-    /// assert_eq!(input::head(input), vec!["if","on","a","winters","night"]);
+    /// assert_eq!(input::head(input), vec!["if","on","a","winter's","night"]);
     /// ```
     pub fn head(s: &str) -> Vec<&str> {
         s.lines().take(5).collect()
