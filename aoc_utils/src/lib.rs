@@ -50,9 +50,128 @@ pub mod input {
     }
 }
 
+/// It was on the seventh day of Advent of Code, 2022 that Ben learned that
+/// tree structures are hard in Rust. Here are some tools for working with
+/// trees that are ~borrowed~ and adapted from:
+/// https://dev.to/deciduously/no-more-tears-no-more-knots-arena-allocated-trees-in-rust-44k6
+pub mod tree {
+
+    #[derive(Debug)]
+    pub struct NodeDoesNotExist {}
+
+    /// A tree with nodes of types Node<T> all stored in the same vector
+    ///
+    /// # Examples
+    #[derive(Debug, Default)]
+    pub struct ArenaTree<T>
+    where
+        T: std::cmp::PartialEq,
+    {
+        arena: Vec<Node<T>>,
+    }
+
+    /// A node in an ArenaTree<T>
+    #[derive(Debug)]
+    pub struct Node<T>
+    where
+        T: PartialEq,
+    {
+        idx: usize,
+        pub value: T,
+        parent: Option<usize>,
+        children: Vec<usize>,
+    }
+
+    impl<T> Node<T>
+    where
+        T: PartialEq,
+    {
+        fn new(idx: usize, value: T) -> Self {
+            Self {
+                idx,
+                value,
+                parent: None,
+                children: vec![],
+            }
+        }
+
+        pub fn idx(&self) -> usize {
+            self.idx
+        }
+
+        pub fn parent(&self) -> Option<usize> {
+            self.parent
+        }
+
+        pub fn children(&self) -> &Vec<usize> {
+            &self.children
+        }
+    }
+
+    impl<T> ArenaTree<T>
+    where
+        T: PartialEq,
+    {
+        pub fn new() -> ArenaTree<T> {
+            ArenaTree { arena: Vec::new() }
+        }
+
+        pub fn len(&self) -> usize {
+            self.arena.len()
+        }
+
+        pub fn get_node(&self, idx: usize) -> Result<&Node<T>, NodeDoesNotExist> {
+            let n_nodes = self.arena.len();
+
+            if idx >= n_nodes {
+                return Err(NodeDoesNotExist {});
+            }
+            Ok(self
+                .arena
+                .get(idx)
+                .expect("Arena has at least this many nodes"))
+        }
+        pub fn add_node(&mut self, value: T) -> usize {
+            let idx = self.arena.len();
+            self.arena.push(Node::new(idx, value));
+            idx
+        }
+
+        pub fn register_parent_node(
+            &mut self,
+            child_idx: usize,
+            parent_idx: usize,
+        ) -> Result<(), NodeDoesNotExist> {
+            let n_nodes = self.arena.len();
+            if (child_idx >= n_nodes) || (parent_idx >= n_nodes) {
+                return Err(NodeDoesNotExist {});
+            }
+            self.arena[child_idx].parent = Some(parent_idx);
+            if !self.arena[parent_idx].children.contains(&child_idx) {
+                self.arena[parent_idx].children.push(child_idx)
+            }
+            Ok(())
+        }
+
+        pub fn add_child_node(
+            &mut self,
+            parent_idx: usize,
+            value: T,
+        ) -> Result<usize, NodeDoesNotExist> {
+            let n_nodes = self.arena.len();
+            if parent_idx >= n_nodes {
+                return Err(NodeDoesNotExist {});
+            };
+            let child_idx = self.add_node(value);
+            self.register_parent_node(child_idx, parent_idx)?;
+            Ok(child_idx)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::input;
+    use crate::{input, tree};
 
     #[test]
     fn head_empty() {
@@ -100,5 +219,22 @@ mod tests {
         let sample = "1\n2\nthree\n";
         let result: Vec<u32> = input::get_lines_of_type(sample);
         assert_eq!(result, vec![1, 2])
+    }
+
+    #[test]
+    fn create_arena_tree_of_depth_three() {
+        let mut tree: tree::ArenaTree<u32> = tree::ArenaTree::new();
+        let idx0 = tree.add_node(10);
+        let idx1 = tree.add_node(20);
+        let idx2 = tree.add_node(21);
+        tree.register_parent_node(idx1, idx0).unwrap();
+        tree.register_parent_node(idx2, idx0).unwrap();
+        let idx3 = tree.add_child_node(idx1, 30).unwrap();
+
+        assert_eq!((idx0, idx1, idx2, idx3), (0, 1, 2, 3));
+        assert_eq!(tree.get_node(0).unwrap().value, 10);
+        assert_eq!(tree.get_node(1).unwrap().parent().unwrap(), 0);
+        assert_eq!(tree.get_node(3).unwrap().parent().unwrap(), 1);
+        assert_eq!(tree.get_node(1).unwrap().children(), &vec![3]);
     }
 }
