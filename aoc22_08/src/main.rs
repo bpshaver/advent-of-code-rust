@@ -71,7 +71,6 @@ fn get_visible_trees_with_views(trees: &Vec<i8>) -> Vec<(usize, usize, usize)> {
 }
 
 fn part_one(input: &str) -> usize {
-    #![allow(unused, dead_code)]
     let mut visible = HashSet::new();
     let (rows, columns) = parse_input(input);
     for (row_idx, row) in rows.iter().enumerate() {
@@ -88,7 +87,6 @@ fn part_one(input: &str) -> usize {
 }
 
 fn part_two(input: &str) -> usize {
-    #![allow(unused, dead_code)]
     let mut scores = HashMap::new();
     let (rows, columns) = parse_input(input);
     for (row_idx, row) in rows.iter().enumerate() {
@@ -99,7 +97,7 @@ fn part_two(input: &str) -> usize {
     for (col_idx, col) in columns.iter().enumerate() {
         for (row_idx, view_left, view_right) in get_visible_trees_with_views(col) {
             if let Some(score) = scores.get_mut(&(row_idx, col_idx)) {
-                *score *= (view_left * view_right);
+                *score *= view_left * view_right;
             }
         }
     }
