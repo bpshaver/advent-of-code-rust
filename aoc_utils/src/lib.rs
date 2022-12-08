@@ -56,6 +56,7 @@ pub mod input {
 /// https://dev.to/deciduously/no-more-tears-no-more-knots-arena-allocated-trees-in-rust-44k6
 pub mod tree {
 
+    /// Empty struct returns when a requested node does not exist in the tree.
     #[derive(Debug)]
     pub struct NodeDoesNotExist {}
 
@@ -77,6 +78,9 @@ pub mod tree {
         T: PartialEq,
     {
         idx: usize,
+        /// Arbitrary value of type T held by Node<T>
+        ///
+        /// Must implement PartialEq
         pub value: T,
         parent: Option<usize>,
         children: Vec<usize>,
@@ -95,14 +99,19 @@ pub mod tree {
             }
         }
 
+        /// Get the index of the node
         pub fn idx(&self) -> usize {
             self.idx
         }
 
+        /// Get the index of the parent node
+        ///
+        /// Will return None if there is no parent node
         pub fn parent(&self) -> Option<usize> {
             self.parent
         }
 
+        /// Get a vector if indices of the children nodes
         pub fn children(&self) -> &Vec<usize> {
             &self.children
         }
@@ -112,14 +121,19 @@ pub mod tree {
     where
         T: PartialEq,
     {
+        /// Initialize a new tree with zero nodes
         pub fn new() -> ArenaTree<T> {
             ArenaTree { arena: Vec::new() }
         }
 
+        /// Get the number of nodes in the tree
         pub fn len(&self) -> usize {
             self.arena.len()
         }
 
+        /// Get node of index idx.
+        ///
+        /// Will return error if the node index does not exist in the tree
         pub fn get_node(&self, idx: usize) -> Result<&Node<T>, NodeDoesNotExist> {
             let n_nodes = self.arena.len();
 
@@ -131,12 +145,17 @@ pub mod tree {
                 .get(idx)
                 .expect("Arena has at least this many nodes"))
         }
+
+        /// Add node with value of type T to the tree and get the index back
         pub fn add_node(&mut self, value: T) -> usize {
             let idx = self.arena.len();
             self.arena.push(Node::new(idx, value));
             idx
         }
 
+        /// Register node at child_idx as child of node at parent_idx, and vice versa
+        ///
+        /// Will return error if either index does not exist in the tree.
         pub fn register_parent_node(
             &mut self,
             child_idx: usize,
@@ -153,6 +172,9 @@ pub mod tree {
             Ok(())
         }
 
+        /// Add a child node with value of type T to tree with parent index parent_idx
+        ///
+        /// Will return an error if parent_idx does not exist.
         pub fn add_child_node(
             &mut self,
             parent_idx: usize,
