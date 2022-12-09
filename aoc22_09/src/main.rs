@@ -3,12 +3,22 @@ use std::collections::HashSet;
 
 const INPUT: &str = include_str!("../input.txt");
 
+fn chebyshev_distance(a: (i32, i32), b: (i32, i32)) -> i32 {
+    let dx = (a.0 - b.0).abs();
+    let dy = (a.1 - b.1).abs();
+    if dx > dy {
+        dx
+    } else {
+        dy
+    }
+}
+
 fn move_tail(head: (i32, i32), tail: (i32, i32)) -> ((i32, i32), (i32, i32)) {
     let delta_x = head.0 - tail.0;
     let delta_y = head.1 - tail.1;
     let mut move_x = 0;
     let mut move_y = 0;
-    if (delta_x.abs() > 1) || (delta_y.abs() > 1) {
+    if chebyshev_distance(head, tail) > 1 {
         if delta_x > 0 {
             move_x = 1;
         }
