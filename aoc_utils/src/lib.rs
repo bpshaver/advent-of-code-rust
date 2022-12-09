@@ -10,3 +10,6 @@ pub mod input;
 /// trees that are ~borrowed~ and adapted from:
 /// <https://dev.to/deciduously/no-more-tears-no-more-knots-arena-allocated-trees-in-rust-44k6>
 pub mod tree;
+
+/// Implementations of 2D mazes.
+pub mod maze;
