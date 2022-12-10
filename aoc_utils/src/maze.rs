@@ -104,6 +104,15 @@ where
             .get_value_at_loc(&self.loc)
             .expect("self.loc is always valid")
     }
+
+    /// Add a new location to the maze.
+    pub fn add_loc(&mut self, loc: L, value: V) {
+        self.maze.add_loc(loc, value)
+    }
+    /// Get the value of the maze at `loc`
+    pub fn get_value_at_loc(&self, loc: &L) -> Result<&V, MazeError> {
+        self.maze.get_value_at_loc(loc)
+    }
 }
 
 impl<V> NavigableMaze for HashMapMaze<(usize, usize), V> {
@@ -236,11 +245,10 @@ mod tests {
         let mut maze = HashMapMaze::new();
         maze.add_loc((0, 0), "start");
         let mut maze = HashMapOccupiedMaze::from_hash_map_maze(maze, (0, 0)).unwrap();
-        maze.maze.add_loc((1, 0), "one_right");
+        maze.add_loc((1, 0), "one_right");
         assert_eq!(maze.get_value(), &"start");
         assert_eq!(
-            maze.maze
-                .get_value_at_loc(&maze.loc_right(maze.loc).unwrap())
+            maze.get_value_at_loc(&maze.loc_right(maze.loc).unwrap())
                 .unwrap(),
             &"one_right"
         );
