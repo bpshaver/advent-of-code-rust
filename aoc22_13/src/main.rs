@@ -1,50 +1,96 @@
-#![allow(unused, dead_code)]
-use aoc_utils::input;
-use lazy_static::lazy_static;
-use regex::Regex;
+use serde_json;
+use serde_json::Value;
+use serde_json::Value::*;
+use std::cmp::Ordering;
 
-#[derive(Debug, PartialEq)]
-enum ListIteme {
-    Integer(u8),
-    List(Vec<ListItem>),
-}
-
-fn line_to_substrings(line: &str) -> Vec<&str> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r#"(\[.*\]|\d)"#).unwrap();
-    }
-    RE.find_iter(line).map(|m| m.as_str()).collect()
-}
-
-fn parse_line(line: &str) -> Vec<ListItem> {
-    let mut res = vec![ListItem::Raw(line)];
-    res
-}
-
-#[derive(Debug, PartialEq)]
-enum NItem {
-    Integer(u8),
-    List(Vec<NItem>),
+fn parse_line(line: &str) -> Value {
+    serde_json::from_str(line)
+        .expect("Each line in the input represents a valid (nested) JSON array")
 }
 
 const INPUT: &str = include_str!("../input.txt");
 
+fn in_order(left: &Value, right: &Value) -> Option<bool> {
+    match (left, right) {
+        (Number(l), Number(r)) => {
+            let l = l.as_u64().unwrap();
+            let r = r.as_u64().unwrap();
+            if l < r {
+                Some(true)
+            } else if l > r {
+                Some(false)
+            } else {
+                None
+            }
+        }
+        (Number(l), Array(_)) => in_order(&Value::from(vec![l.as_u64().unwrap()]), right),
+        (Array(_), Number(r)) => in_order(left, &Value::from(vec![r.as_u64().unwrap()])),
+        (Array(l), Array(r)) => {
+            for i in 0.. {
+                let l = l.get(i);
+                let r = r.get(i);
+                match (l, r) {
+                    (None, None) => return None,
+                    (None, Some(_)) => return Some(true),
+                    (Some(_), None) => return Some(false),
+                    (Some(l), Some(r)) => match in_order(l, r) {
+                        None => (),
+                        Some(bool_) => return Some(bool_),
+                    },
+                }
+            }
+            None
+        }
+        _ => panic!("Not expecting any JSON `Value`s other than `Number` and `Array`!"),
+    }
+}
+
 fn part_one(input: &str) -> usize {
-    #![allow(unused, dead_code)]
-    todo!()
+    input.split("\n\n").enumerate().fold(0, |a, (i, pair)| {
+        let (left, right) = pair
+            .split_once('\n')
+            .expect("Input sample is two lines followed by a blank line");
+        let left = parse_line(left);
+        let right = parse_line(right);
+        match in_order(&left, &right) {
+            None => panic!(),
+            Some(true) => a + i + 1,
+            Some(false) => a,
+        }
+    })
 }
 
 fn part_two(input: &str) -> usize {
-    #![allow(unused, dead_code)]
-    todo!()
+    let mut values: Vec<Value> = input
+        .lines()
+        .filter(|line| line != &"")
+        .map(|line| {
+            line.parse()
+                .expect("Each line is a valid nested JSON array")
+        })
+        .collect();
+    values.push("[[2]]".parse().unwrap());
+    values.push("[[6]]".parse().unwrap());
+    values.sort_by(|l, r| match in_order(l, r) {
+        None => panic!(),
+        Some(true) => Ordering::Less,
+        Some(false) => Ordering::Greater,
+    });
+    values
+        .iter()
+        .enumerate()
+        .filter(|(_, v)| {
+            (*v == &"[[2]]".parse::<Value>().unwrap()) || (*v == &"[[6]]".parse::<Value>().unwrap())
+        })
+        .map(|(i, _)| i + 1)
+        .product()
 }
 
 fn main() {
-    println!("Head of INPUT:\n{:?}", input::head(INPUT));
     let part_one_solution = part_one(INPUT);
     println!("Solution to part one: {}", part_one_solution);
-    // let part_two_solution = part_two(INPUT);
-    // println!("Solution to part two: {}", part_two_solution);
+    let part_two_solution = part_two(INPUT);
+    println!("Solution to part two: {}", part_two_solution);
 }
 
 #[cfg(test)]
@@ -52,47 +98,49 @@ mod tests {
     #![allow(unused, dead_code)]
     use crate::*;
 
-    #[test]
-    fn line_to_substrings_basic() {
-        assert_eq!(
-            line_to_substrings("1,1,3,1,1"),
-            vec!["1", "1", "3", "1", "1"]
-        );
-        assert_eq!(
-            line_to_substrings("1,[2,[3,[4,[5,6,7]]]],8,9"),
-            vec!["1", "[2,[3,[4,[5,6,7]]]]", "8", "9"]
-        );
+    const SAMPLE: &str = "[1,1,3,1,1]\n[1,1,5,1,1]\n\n[[1],[2,3,4]]\n[[1],4]\n\n[9]\n[[8,7,6]]\n\n[[4,4],4,4]\n[[4,4],4,4,4]\n\n[7,7,7,7]\n[7,7,7]\n\n[]\n[3]\n\n[[[]]]\n[[]]\n\n[1,[2,[3,[4,[5,6,7]]]],8,9]\n[1,[2,[3,[4,[5,6,0]]]],8,9]";
+
+    const SAMPLE2: &str = "[]\n[[]]\n[[[]]]\n[1,1,3,1,1]\n[1,1,5,1,1]\n[[1],[2,3,4]]\n[1,[2,[3,[4,[5,6,0]]]],8,9]\n[1,[2,[3,[4,[5,6,7]]]],8,9]\n[[1],4]\n[[2]]\n[3]\n[[4,4],4,4]\n[[4,4],4,4,4]\n[[6]]\n[7,7,7]\n[7,7,7,7]\n[[8,7,6]]\n[9]";
+
+    fn strings_in_order(l: &str, r: &str) -> bool {
+        in_order(&l.parse().unwrap(), &r.parse().unwrap()).unwrap()
     }
 
     #[test]
-    fn parse_line_test() {
-        //  assert_eq!(parse_line("1,[2,[3,[4,[5,6,7]]]],8,9"), vec![]);
-        assert_eq!(
-            parse_line("1,2, 3"),
-            vec![
-                ListItem::Integer(1),
-                ListItem::Integer(2),
-                ListItem::Integer(3)
-            ]
-        );
-        assert_eq!(
-            parse_line("1,2, 3, [4,5]"),
-            vec![
-                ListItem::Integer(1),
-                ListItem::Integer(2),
-                ListItem::Integer(3),
-                ListItem::List(vec![ListItem::Integer(4), ListItem::Integer(5)])
-            ]
-        );
+    fn in_order_basic() {
+        assert!(strings_in_order("7", "9"));
+        assert!(strings_in_order("[4]", "[4,5]"));
+        assert!(strings_in_order("[4, 5, 6]", "[5]"));
+        assert!(strings_in_order("4", "[5]"));
+        assert!(strings_in_order("[5,6,0, 1]", "[5,6,7, 1]"));
+        assert!(!strings_in_order("[5,6,7,1]", "[5,6,0,1]"));
     }
 
-    // #[test]
+    #[test]
+    fn in_order_complex() {
+        assert!(!strings_in_order(
+            "[1,[2,[3,[4,[5,6,7]]]],8,9]",
+            "[1,[2,[3,[4,[5,6,0]]]],8,9]"
+        ));
+    }
+
+    #[test]
     fn part_one_sample() {
-        todo!()
+        assert_eq!(part_one(SAMPLE), 13);
     }
 
-    // #[test]
+    #[test]
+    fn part_one_solution() {
+        assert_eq!(part_one(INPUT), 5292);
+    }
+
+    #[test]
     fn part_two_sample() {
-        todo!()
+        assert_eq!(part_two(SAMPLE), 140);
+    }
+
+    #[test]
+    fn part_two_solution() {
+        assert_eq!(part_two(INPUT), 23868);
     }
 }
