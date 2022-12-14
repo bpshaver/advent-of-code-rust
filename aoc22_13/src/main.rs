@@ -3,12 +3,12 @@ use serde_json::Value;
 use serde_json::Value::*;
 use std::cmp::Ordering;
 
+const INPUT: &str = include_str!("../input.txt");
+
 fn parse_line(line: &str) -> Value {
     serde_json::from_str(line)
         .expect("Each line in the input represents a valid (nested) JSON array")
 }
-
-const INPUT: &str = include_str!("../input.txt");
 
 fn in_order(left: &Value, right: &Value) -> Option<bool> {
     match (left, right) {
