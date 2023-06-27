@@ -3,6 +3,8 @@
 members = [
         "aoc_utils",
         "aoc15_02",
+        "aoc15_03",
+        # "aoc15_11",
         "aoc21_01",
         "aoc21_02",
         "aoc21_03",
@@ -24,5 +26,5 @@ members = [
         "aoc22_13",
         "aoc22_14",
         "aoc22_15",
-        "aoc22_16"
+        # "aoc22_16"
 ]
