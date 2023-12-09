@@ -153,8 +153,8 @@ fn main() {
     println!("Head of INPUT:\n{:?}", input::head(INPUT));
     let part_one_solution = part_one(INPUT);
     println!("Solution to part one: {}", part_one_solution);
-    // let part_two_solution = part_two(INPUT);
-    // println!("Solution to part two: {}", part_two_solution);
+    let part_two_solution = part_two(INPUT);
+    println!("Solution to part two: {}", part_two_solution);
 }
 
 #[cfg(test)]
@@ -239,8 +239,8 @@ mod tests {
         assert_eq!(part_one(SAMPLE), 6440)
     }
 
-    // #[test]
+    #[test]
     fn part_two_sample() {
-        todo!()
+        assert_eq!(part_one(SAMPLE), 5905)
     }
 }
